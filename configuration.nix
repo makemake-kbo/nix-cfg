@@ -104,6 +104,8 @@
       ffmpeg
       yt-dlp
       gnupg
+      smartmontools
+      imagemagick
       # gnome extensions
       gnome.gnome-shell-extensions
       gnomeExtensions.appindicator
