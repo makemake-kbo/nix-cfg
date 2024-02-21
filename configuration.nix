@@ -106,6 +106,7 @@
       gnupg
       smartmontools
       imagemagick
+      fd
       # gnome extensions
       gnome.gnome-shell-extensions
       gnomeExtensions.appindicator
