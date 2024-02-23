@@ -88,7 +88,7 @@
   users.users.makemake = {
     isNormalUser = true;
     description = "makemake";
-    extraGroups = [ "networkmanager" "wheel" "libvirtd" "peripherals"];
+    extraGroups = [ "networkmanager" "wheel" "libvirtd" "peripherals" "docker"];
     packages = with pkgs; [
       # should be a flatpak innit
       # firefox
@@ -175,6 +175,25 @@
   # Virtualization
   virtualisation.libvirtd.enable = true;
   programs.virt-manager.enable = true;
+
+  # Docker masturbation
+  virtualisation.docker.enable = true;
+  virtualisation.docker.rootless = {
+    enable = true;
+    setSocketVariable = true;
+  };
+  virtualisation.docker.daemon.settings = {
+    data-root = "/home/makemake/docker";
+  };
+
+  virtualisation = {
+    podman = {
+      enable = true;
+
+      # Required for containers under podman-compose to be able to talk to each other.
+      defaultNetwork.settings.dns_enabled = true;
+    };
+  };
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
