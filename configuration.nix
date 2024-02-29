@@ -93,6 +93,7 @@
       # should be a flatpak innit
       # firefox
       evolution
+      evince
       gnome.gnome-tweaks
       sublime-merge
       sublime4
@@ -123,9 +124,7 @@
     cheese # webcam tool
     gnome-music
     epiphany # web browser
-    evince # document viewer
     gnome-characters
-    totem # video player
   ]);
 
   # hyprland
