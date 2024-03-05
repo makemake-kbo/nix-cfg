@@ -29,7 +29,7 @@
   boot.loader.grub.enableCryptodisk=true;
 
   boot.initrd.luks.devices."luks-b8654007-4232-4f9b-bb97-5ddc37ecac20".keyFile = "/crypto_keyfile.bin";
-  networking.hostName = "nixos"; # Define your hostname.
+  networking.hostName = "melchior"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
   # Configure network proxy if necessary
@@ -108,6 +108,8 @@
       smartmontools
       imagemagick
       fd
+      whois
+      transmission-gtk
       # gnome extensions
       gnome.gnome-shell-extensions
       gnomeExtensions.appindicator
