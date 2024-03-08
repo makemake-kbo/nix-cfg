@@ -114,6 +114,7 @@
       gnome.gnome-shell-extensions
       gnomeExtensions.appindicator
       gnome.gnome-settings-daemon
+      gnomeExtensions.just-perfection
       gnomeExtensions.tray-icons-reloaded
     ];
   };
