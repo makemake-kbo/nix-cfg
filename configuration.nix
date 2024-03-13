@@ -14,6 +14,8 @@
       ./networking.nix
       # font config
       ./fonts.nix
+      # patching non nix software
+      ./nix_ld.nix
     ];
 
   # Bootloader.
@@ -111,6 +113,7 @@
       whois
       transmission-gtk
       pinentry-gnome
+      file
       # gnome extensions
       gnome.gnome-shell-extensions
       gnomeExtensions.appindicator
