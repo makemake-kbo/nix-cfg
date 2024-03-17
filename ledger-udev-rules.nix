@@ -1,5 +1,8 @@
 { pkgs, config, ... }: {
 
+  # Needed for controllers to work with steam.
+  boot.kernelModules = [ "uinput" ];
+
   services.udev.extraRules = ''
     # HW.1 / Nano
     SUBSYSTEMS=="usb", ATTRS{idVendor}=="2581", ATTRS{idProduct}=="1b7c|2b7c|3b7c|4b7c", TAG+="uaccess", TAG+="udev-acl", GROUP="peripherals", MODE="0660"
@@ -17,5 +20,34 @@
     SUBSYSTEMS=="usb", ATTRS{idVendor}=="2c97", ATTRS{idProduct}=="0005|5000|5001|5002|5003|5004|5005|5006|5007|5008|5009|500a|500b|500c|500d|500e|500f|5010|5011|5012|5013|5014|5015|5016|5017|5018|5019|501a|501b|501c|501d|501e|501f", TAG+="uaccess", TAG+="udev-acl", GROUP="peripherals", MODE="0660"
     # Ledger Stax
     SUBSYSTEMS=="usb", ATTRS{idVendor}=="2c97", ATTRS{idProduct}=="6011", TAG+="uaccess", TAG+="udev-acl", GROUP="peripherals", MODE="0660"
+
+    ## STEAM CONTROLLERS ##
+
+    # DualShock 4 over USB hidraw
+    KERNEL=="hidraw*", ATTRS{idVendor}=="054c", ATTRS{idProduct}=="05c4", MODE="0660", TAG+="uaccess"
+
+    # DualShock 4 wireless adapter over USB hidraw
+    KERNEL=="hidraw*", ATTRS{idVendor}=="054c", ATTRS{idProduct}=="0ba0", MODE="0660", TAG+="uaccess"
+
+    # DualShock 4 Slim over USB hidraw
+    KERNEL=="hidraw*", ATTRS{idVendor}=="054c", ATTRS{idProduct}=="09cc", MODE="0660", TAG+="uaccess"
+
+    # DualShock 4 over bluetooth hidraw
+    KERNEL=="hidraw*", KERNELS=="*054C:05C4*", MODE="0660", TAG+="uaccess"
+
+    # DualShock 4 Slim over bluetooth hidraw
+    KERNEL=="hidraw*", KERNELS=="*054C:09CC*", MODE="0660", TAG+="uaccess"
+
+    # PS5 DualSense controller over USB hidraw
+    KERNEL=="hidraw*", ATTRS{idVendor}=="054c", ATTRS{idProduct}=="0ce6", MODE="0660", TAG+="uaccess"
+
+    # PS5 DualSense controller over bluetooth hidraw
+    KERNEL=="hidraw*", KERNELS=="*054C:0CE6*", MODE="0660", TAG+="uaccess"
+
+    # Nintendo Switch Pro Controller over USB hidraw
+    KERNEL=="hidraw*", ATTRS{idVendor}=="057e", ATTRS{idProduct}=="2009", MODE="0660", TAG+="uaccess"
+
+    # Nintendo Switch Pro Controller over bluetooth hidraw
+    KERNEL=="hidraw*", KERNELS=="*057E:2009*", MODE="0660", TAG+="uaccess"
   '';
 }
