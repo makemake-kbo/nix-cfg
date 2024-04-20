@@ -2,6 +2,7 @@
 
   # Needed for controllers to work with steam.
   boot.kernelModules = [ "uinput" ];
+  hardware.steam-hardware.enable = true;
 
   services.udev.extraRules = ''
     # HW.1 / Nano
