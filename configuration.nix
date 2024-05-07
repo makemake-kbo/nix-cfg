@@ -100,7 +100,6 @@
       gnome.gnome-tweaks
       sublime-merge
       sublime4
-      gedit
       neofetch
       megasync
       framesh
