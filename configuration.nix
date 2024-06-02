@@ -122,6 +122,12 @@
     gnome-characters
   ]);
 
+  # enable running appimages
+  programs.appimage = {
+    enable = true;
+    binfmt = true;
+  };
+
   # hyprland
   # programs.hyprland.enable = true;
 
