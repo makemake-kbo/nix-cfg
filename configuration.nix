@@ -55,9 +55,9 @@
   services.xserver.desktopManager.gnome.enable = true;
 
   # Configure keymap in X11
-  services.xserver = {
+  services.xserver.xkb = {
     layout = "us";
-    xkbVariant = "";
+    variant = "";
   };
 
   # Enable CUPS to print documents.
@@ -100,26 +100,14 @@
       gnome.gnome-tweaks
       sublime-merge
       sublime4
-      neofetch
-      megasync
       framesh
       vlc
       ffmpeg
       yt-dlp
       gnupg
       smartmontools
-      imagemagick
-      fd
       whois
-      transmission-gtk
       file
-      
-      # gnome extensions
-      gnome.gnome-shell-extensions
-      gnomeExtensions.appindicator
-      gnome.gnome-settings-daemon
-      gnomeExtensions.just-perfection
-      gnomeExtensions.tray-icons-reloaded
     ];
   };
 
