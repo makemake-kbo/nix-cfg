@@ -23,7 +23,7 @@
       source-code-pro
       ttf_bitstream_vera
       # Use bin to save build time (~11min).
-      (iosevka-bin.override { variant = "sgr-iosevka-fixed"; })
+      iosevka-bin
 
       # Roman for PDF.
       liberation_ttf

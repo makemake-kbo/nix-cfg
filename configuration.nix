@@ -112,8 +112,8 @@
       fd
       whois
       transmission-gtk
-      pinentry-gnome
       file
+      
       # gnome extensions
       gnome.gnome-shell-extensions
       gnomeExtensions.appindicator
