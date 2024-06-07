@@ -131,6 +131,9 @@
   # hyprland
   # programs.hyprland.enable = true;
 
+  # zram
+  zramSwap.enable = true;
+
   # System profiling
   services.sysprof.enable = true;
 
