@@ -177,6 +177,7 @@
 
   # Virtualization
   virtualisation.libvirtd.enable = true;
+  boot.kernelModules = [ "kvm-amd" ];
   programs.virt-manager.enable = true;
 
   # Docker masturbation
