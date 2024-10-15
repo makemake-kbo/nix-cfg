@@ -21,6 +21,7 @@
       ipafont
       kochi-substitute
       source-code-pro
+      vistafonts
       ttf_bitstream_vera
       # Use bin to save build time (~11min).
       iosevka-bin

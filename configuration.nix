@@ -60,8 +60,8 @@
     variant = "";
   };
 
-  # Enable CUPS to print documents.
-  services.printing.enable = true;
+  # Disable cups 
+  services.printing.enable = false;
 
   # Enable sound with pipewire.
   sound.enable = true;
@@ -127,6 +127,13 @@
     enable = true;
     binfmt = true;
   };
+
+  # Add steam
+  programs.steam = {
+    enable = true;
+    remotePlay.openFirewall = true; # Open ports in the firewall for Steam Remote Play
+    dedicatedServer.openFirewall = true; # Open ports in the firewall for Source Dedicated Server
+  }; 
 
   # hyprland
   # programs.hyprland.enable = true;
