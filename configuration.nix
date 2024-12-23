@@ -64,7 +64,7 @@
   services.printing.enable = false;
 
   # Enable sound with pipewire.
-  sound.enable = true;
+  # sound.enable = true;
   hardware.pulseaudio.enable = false;
   security.rtkit.enable = true;
   services.pipewire = {
@@ -97,7 +97,7 @@
       # firefox
       evolution
       evince
-      gnome.gnome-tweaks
+      gnome-tweaks
       sublime-merge
       sublime4
       framesh
@@ -115,7 +115,7 @@
   environment.gnome.excludePackages = (with pkgs; [
     gnome-tour
     xterm
-  ]) ++ (with pkgs.gnome; [
+  ]) ++ (with pkgs; [
     cheese # webcam tool
     gnome-music
     epiphany # web browser
@@ -139,7 +139,7 @@
   # programs.hyprland.enable = true;
 
   # zram
-  zramSwap.enable = true;
+  zramSwap.enable = false;
 
   # System profiling
   services.sysprof.enable = true;
@@ -234,10 +234,7 @@
 
   # Flakes
   nix = {
-    package = pkgs.nixFlakes;
-    extraOptions = ''
-      experimental-features = nix-command flakes
-    '';
+    settings.experimental-features = [ "nix-command" "flakes" ];
   };
 
   # This value determines the NixOS release from which the default
