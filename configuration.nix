@@ -81,6 +81,24 @@
   };
   services.gnome.at-spi2-core.enable = true;
 
+  # AMD GPU - VAAPI for hardware video acceleration
+  hardware.graphics = {
+    enable = true;
+    enable32Bit = true;
+    extraPackages = with pkgs; [
+      libva
+      libva-utils
+      vaapiVdpau
+      libvdpau-va-gl
+      rocmPackages.clr.icd
+    ];
+    extraPackages32 = with pkgs.pkgsi686Linux; [
+      libva
+      vaapiVdpau
+      libvdpau-va-gl
+    ];
+  };
+
   # Enable touchpad support (enabled default in most desktopManager).
   # services.xserver.libinput.enable = true;
 
@@ -106,8 +124,15 @@
       yt-dlp
       gnupg
       smartmontools
+      systemd
       whois
       file
+      virt-viewer
+      spice 
+      spice-gtk
+      spice-protocol
+      win-virtio
+      win-spice
     ];
   };
 
@@ -184,7 +209,21 @@
 
   # Virtualization
   virtualisation.libvirtd.enable = true;
-  boot.kernelModules = [ "kvm-amd" ];
+  virtualisation.libvirtd.allowedBridges = [ "br0" ];
+  boot.extraModprobeConfig = "options kvm_amd nested=1";
+
+  virtualisation.libvirtd.qemu = {
+    package = pkgs.qemu_kvm;
+    runAsRoot = true;
+    swtpm.enable = true;
+    ovmf = {
+      enable = true;
+      packages = [ pkgs.OVMFFull.fd ];
+    };
+  };
+  boot.kernelParams = [ "amd_iommu=on" ];  # or "amd_iommu=on" for AMD
+  boot.kernelModules = [ "kvm-amd" "vfio" "vfio_iommu_type1" "vfio_pci" "vfio_virqfd" ];
+
   programs.virt-manager.enable = true;
 
   # Docker masturbation
@@ -224,6 +263,18 @@
   # networking.firewall.allowedUDPPorts = [ ... ];
   # Or disable the firewall altogether.
   # networking.firewall.enable = false;
+
+  # fileSystems."/mnt/QVO" = {
+  #   device = "/dev/disk/by-uuid/c2127c5f-c14c-4f53-9500-4205230268fc";
+  #   fsType = "ext4";
+  #   options = [ "defaults" "user" "rw" ];
+  # };
+
+  # fileSystems."/mnt/pciessd" = {
+  #   device = "/dev/disk/by-uuid/e7ac3523-c3d0-4aad-9227-0e3799f4ad18";
+  #   fsType = "ext4";
+  #   options = [ "defaults" "user" "rw" ];
+  # };
 
   # Garbage collection
   nix.gc = {

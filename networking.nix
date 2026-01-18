@@ -13,7 +13,7 @@
       104.27.206.92 nhentai.net
       104.27.206.92 static.nhentai.net
       104.27.206.92 t1.nhentai.net
-      104.27.206.92 t2.nhentat .net
-      104.27.206.92 t3.nhentai .net
+      104.27.206.92 t2.nhentat.net
+      104.27.206.92 t3.nhentai.net
     '';
 }
