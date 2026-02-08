@@ -133,6 +133,7 @@
       spice-protocol
       win-virtio
       win-spice
+      (wineWowPackages.stable.override { waylandSupport = true; })
     ];
   };
 
