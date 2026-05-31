@@ -16,6 +16,8 @@
       ./fonts.nix
       # patching non nix software
       ./nix_ld.nix
+      # dconf / GNOME settings
+      ./dconf.nix
     ];
 
   # Bootloader.
@@ -51,8 +53,8 @@
   services.xserver.enable = true;
 
   # Enable the GNOME Desktop Environment.
-  services.xserver.displayManager.gdm.enable = true;
-  services.xserver.desktopManager.gnome.enable = true;
+  services.displayManager.gdm.enable = true;
+  services.desktopManager.gnome.enable = true;
 
   # Configure keymap in X11
   services.xserver.xkb = {
@@ -65,7 +67,7 @@
 
   # Enable sound with pipewire.
   # sound.enable = true;
-  hardware.pulseaudio.enable = false;
+  services.pulseaudio.enable = false;
   security.rtkit.enable = true;
   services.pipewire = {
     enable = true;
@@ -88,15 +90,29 @@
     extraPackages = with pkgs; [
       libva
       libva-utils
-      vaapiVdpau
+      libva-vdpau-driver
       libvdpau-va-gl
       rocmPackages.clr.icd
     ];
     extraPackages32 = with pkgs.pkgsi686Linux; [
       libva
-      vaapiVdpau
+      libva-vdpau-driver
       libvdpau-va-gl
     ];
+  };
+
+  # Override DP EDID for Samsung Odyssey G85SD — DP-side EDID hides 175Hz +
+  # FreeSync modes behind a DisplayID 2.0 block the kernel mis-parses. The
+  # binary here is the HDMI-side EDID dumped from macOS, which encodes the
+  # same modes in CTA-861 blocks the kernel handles correctly.
+  hardware.display = {
+    edid.packages = [
+      (pkgs.runCommand "samsung-g85sd-edid" {} ''
+        mkdir -p $out/lib/firmware/edid
+        cp ${./samsung-g85sd.bin} $out/lib/firmware/edid/samsung-g85sd.bin
+      '')
+    ];
+    outputs."DP-3".edid = "samsung-g85sd.bin";
   };
 
   # Enable touchpad support (enabled default in most desktopManager).
@@ -131,9 +147,9 @@
       spice 
       spice-gtk
       spice-protocol
-      win-virtio
+      virtio-win
       win-spice
-      (wineWowPackages.stable.override { waylandSupport = true; })
+      (wineWow64Packages.stable.override { waylandSupport = true; })
     ];
   };
 
@@ -217,12 +233,8 @@
     package = pkgs.qemu_kvm;
     runAsRoot = true;
     swtpm.enable = true;
-    ovmf = {
-      enable = true;
-      packages = [ pkgs.OVMFFull.fd ];
-    };
   };
-  boot.kernelParams = [ "amd_iommu=on" ];  # or "amd_iommu=on" for AMD
+  boot.kernelParams = [ "amd_iommu=on" "amdgpu.freesync_video=1" ];
   boot.kernelModules = [ "kvm-amd" "vfio" "vfio_iommu_type1" "vfio_pci" "vfio_virqfd" ];
 
   programs.virt-manager.enable = true;

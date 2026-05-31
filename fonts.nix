@@ -21,7 +21,7 @@
       ipafont
       kochi-substitute
       source-code-pro
-      vistafonts
+      vista-fonts
       ttf_bitstream_vera
       # Use bin to save build time (~11min).
       iosevka-bin
@@ -87,6 +87,11 @@
       name = "system-fonts";
       paths = config.fonts.packages;
       pathsToLink = [ "/share/fonts" ];
+      # 26.05 pulls X11 bitmap fonts (font-misc-misc, font-cursor-misc) into
+      # fonts.packages; they ship colliding share/fonts/X11/misc/fonts.dir
+      # files, which buildEnv now errors on. Ignore the collision (legacy
+      # index files, irrelevant to the Flatpak font mount).
+      ignoreCollisions = true;
     };
   in {
     # Create an FHS mount to support flatpak host icons/fonts

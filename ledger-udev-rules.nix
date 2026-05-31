@@ -450,5 +450,8 @@
 
     # PROlectrix DV107669 (FC0012)
     SUBSYSTEMS=="usb", ATTRS{idVendor}=="1f4d", ATTRS{idProduct}=="d803", MODE:="0666"
+
+    # boox
+    SUBSYSTEM=="usb", ATTR{idVendor}=="18d1", ATTR{idProduct}=="4ee2", MODE="0666", GROUP="users"
   '';
 }
