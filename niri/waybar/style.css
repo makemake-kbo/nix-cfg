@@ -1,0 +1,64 @@
+/* Adwaita-dark flavored waybar */
+
+* {
+  font-family: "Cantarell", "Font Awesome 6 Free", sans-serif;
+  font-size: 13px;
+  min-height: 0;
+}
+
+window#waybar {
+  background: #242424;
+  color: #ffffff;
+  border-bottom: 1px solid #1b1b1b;
+}
+
+#workspaces button {
+  padding: 0 8px;
+  margin: 4px 2px;
+  color: #cdcdcd;
+  background: transparent;
+  border-radius: 6px;
+}
+
+#workspaces button.active {
+  color: #ffffff;
+  background: #3584e4;
+}
+
+#workspaces button.urgent {
+  background: #e01b24;
+  color: #ffffff;
+}
+
+#window {
+  color: #cdcdcd;
+  padding: 0 8px;
+}
+
+#clock,
+#tray,
+#network,
+#pulseaudio,
+#battery {
+  padding: 0 10px;
+  margin: 4px 2px;
+  background: #303030;
+  border-radius: 6px;
+}
+
+#clock {
+  background: transparent;
+  font-weight: bold;
+}
+
+#battery.warning { color: #f5c211; }
+#battery.critical { color: #e01b24; }
+#pulseaudio.muted { color: #919191; }
+#network.disconnected { color: #919191; }
+
+tooltip {
+  background: #242424;
+  border: 1px solid #3c3c3c;
+  border-radius: 8px;
+}
+tooltip label { color: #ffffff; }

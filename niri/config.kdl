@@ -1,0 +1,172 @@
+// niri config — GNOME-flavored. See niri/default.nix for how this is installed.
+// Reference: https://github.com/YaLTeR/niri/wiki/Configuration:-Overview
+
+input {
+    keyboard {
+        xkb {
+            layout "us"
+            // Matches dconf input-sources xkb-options: Caps -> Ctrl, and
+            // Ctrl+Alt+Backspace terminates the session.
+            options "caps:ctrl_modifier,terminate:ctrl_alt_bksp"
+        }
+    }
+
+    touchpad {
+        tap
+        natural-scroll
+        // two-finger scroll is the default; matches GNOME touchpad setting.
+    }
+
+    mouse {
+        // GNOME speed was ~-0.12 on its own scale; niri uses -1..1. Roughly
+        // matched here — tune to taste.
+        accel-speed -0.1
+    }
+
+    // Focus follows the GNOME click-to-focus model (no focus-follows-mouse).
+}
+
+// Samsung Odyssey G85SD on DP-3. The kernel EDID override (see configuration.nix)
+// exposes the high-refresh + VRR modes. Enable VRR on demand like GNOME did.
+output "DP-3" {
+    variable-refresh-rate on-demand=true
+    // To pin a specific mode, uncomment and adjust, e.g.:
+    // mode "3440x1440@175.000"
+}
+
+layout {
+    gaps 8
+    center-focused-column "never"
+
+    preset-column-widths {
+        proportion 0.33333
+        proportion 0.5
+        proportion 0.66667
+    }
+
+    default-column-width { proportion 0.5; }
+
+    focus-ring {
+        width 2
+        active-color "#3584e4"   // Adwaita blue
+        inactive-color "#3c3c3c"
+    }
+
+    border {
+        off
+    }
+}
+
+// Use server-side decorations: niri is a tiler, so windows stay borderless/clean.
+prefer-no-csd
+
+screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
+
+// Let X11 apps find xwayland-satellite (spawned below, default display :0).
+environment {
+    DISPLAY ":0"
+}
+
+cursor {
+    xcursor-theme "Adwaita"
+    xcursor-size 24
+}
+
+hotkey-overlay {
+    skip-at-startup
+}
+
+// ---- Autostart (the GNOME-like shell) -------------------------------------
+
+spawn-at-startup "waybar"
+spawn-at-startup "niri-wallpaper"                           // rotates ~/Pictures/wallpaper
+spawn-at-startup "swaync"
+// Night light on a sunrise/sunset schedule for Belgrade (44.79N, 20.45E):
+// neutral 6500K by day, 3700K at night.
+spawn-at-startup "gammastep" "-l" "44.79:20.45" "-t" "6500:3700"
+spawn-at-startup "sh" "-c" "wl-paste --watch cliphist store"
+spawn-at-startup "xwayland-satellite"
+spawn-at-startup "/run/current-system/sw/libexec/polkit-gnome-authentication-agent-1"
+
+// Lock at 5 min (matches dconf idle-delay 300), suspend at 60 min (matches
+// sleep-inactive-ac-timeout 3600), and lock before sleep.
+spawn-at-startup "swayidle" "-w" \
+    "timeout" "300" "swaylock -f" \
+    "timeout" "3600" "systemctl suspend" \
+    "before-sleep" "swaylock -f"
+
+// ---- Keybindings (GNOME-mimicking; Mod = Super) ---------------------------
+
+binds {
+    Mod+Shift+Slash { show-hotkey-overlay; }
+
+    // Apps
+    Mod+Return { spawn "kgx"; }                 // GNOME Console
+    Mod+D      { spawn "fuzzel"; }              // launcher
+    Mod+E      { spawn "nautilus"; }            // Files
+    Mod+V      { spawn "sh" "-c" "cliphist list | fuzzel --dmenu | cliphist decode | wl-copy"; }
+
+    // Window management
+    Mod+Q   { close-window; }
+    Alt+F4  { close-window; }
+    Mod+L   { spawn "swaylock" "-f"; }
+    Mod+F       { maximize-column; }
+    Mod+Shift+F { fullscreen-window; }
+
+    // Focus / movement
+    Mod+Left  { focus-column-left; }
+    Mod+Right { focus-column-right; }
+    Mod+Up    { focus-workspace-up; }
+    Mod+Down  { focus-workspace-down; }
+    Mod+Shift+Left  { move-column-left; }
+    Mod+Shift+Right { move-column-right; }
+    Mod+Shift+Up    { move-window-to-workspace-up; }
+    Mod+Shift+Down  { move-window-to-workspace-down; }
+
+    // Overview: zoomed-out, scrollable view of all workspaces + windows
+    // (the niri equivalent of GNOME's Activities overview).
+    Mod+O   { toggle-overview; }
+    Alt+Tab { toggle-overview; }
+
+    // Workspaces by number (matches GNOME Super+N / Super+Shift+N)
+    Mod+1 { focus-workspace 1; }
+    Mod+2 { focus-workspace 2; }
+    Mod+3 { focus-workspace 3; }
+    Mod+4 { focus-workspace 4; }
+    Mod+5 { focus-workspace 5; }
+    Mod+6 { focus-workspace 6; }
+    Mod+7 { focus-workspace 7; }
+    Mod+8 { focus-workspace 8; }
+    Mod+9 { focus-workspace 9; }
+    Mod+Shift+1 { move-column-to-workspace 1; }
+    Mod+Shift+2 { move-column-to-workspace 2; }
+    Mod+Shift+3 { move-column-to-workspace 3; }
+    Mod+Shift+4 { move-column-to-workspace 4; }
+    Mod+Shift+5 { move-column-to-workspace 5; }
+    Mod+Shift+6 { move-column-to-workspace 6; }
+    Mod+Shift+7 { move-column-to-workspace 7; }
+    Mod+Shift+8 { move-column-to-workspace 8; }
+    Mod+Shift+9 { move-column-to-workspace 9; }
+
+    // Mouse wheel over the bar / Mod+scroll moves between workspaces
+    Mod+WheelScrollDown { focus-workspace-down; }
+    Mod+WheelScrollUp   { focus-workspace-up; }
+
+    // Screenshots (GNOME PrintScreen behavior)
+    Print      { screenshot; }
+    Ctrl+Print { screenshot-screen; }
+    Alt+Print  { screenshot-window; }
+
+    // Media keys (keyd already maps the Lofree row to these XF86 keysyms)
+    XF86AudioRaiseVolume  allow-when-locked=true { spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.05+"; }
+    XF86AudioLowerVolume  allow-when-locked=true { spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.05-"; }
+    XF86AudioMute         allow-when-locked=true { spawn "wpctl" "set-mute" "@DEFAULT_AUDIO_SINK@" "toggle"; }
+    XF86AudioPlay         allow-when-locked=true { spawn "playerctl" "play-pause"; }
+    XF86AudioNext         allow-when-locked=true { spawn "playerctl" "next"; }
+    XF86AudioPrev         allow-when-locked=true { spawn "playerctl" "previous"; }
+    XF86MonBrightnessUp   allow-when-locked=true { spawn "brightnessctl" "set" "5%+"; }
+    XF86MonBrightnessDown allow-when-locked=true { spawn "brightnessctl" "set" "5%-"; }
+
+    // Session
+    Mod+Shift+E { quit; }
+}

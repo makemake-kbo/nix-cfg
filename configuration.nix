@@ -20,11 +20,18 @@
       ./dconf.nix
       # Sublime Text user settings
       ./sublime.nix
+      # niri WM (self-contained; delete this line + ./niri to remove)
+      ./niri
     ];
 
   # Bootloader.
+  # Target the boot disk (WD_BLACK SN770, MBR, holds the LUKS root) by stable
+  # by-id path. Kernel nvme enumeration is unstable — it has swapped this disk
+  # between nvme0n1/nvme1n1, and pointing grub at the bare /dev/nvme0n1 made
+  # grub-install land on the GPT Intel Optane scratch disk (no BIOS Boot
+  # Partition -> "embedding is not possible" failure). by-id is enumeration-proof.
   boot.loader.grub.enable = true;
-  boot.loader.grub.device = "/dev/nvme0n1";
+  boot.loader.grub.device = "/dev/disk/by-id/nvme-WD_BLACK_SN770_2TB_232165800652";
   boot.loader.grub.useOSProber = true;
 
   # Setup keyfile
@@ -98,8 +105,28 @@
     };
   };
 
-  # Disable cups 
+  # Disable cups
   services.printing.enable = false;
+
+  # Bluetooth. powerOnBoot ensures the controller comes up powered.
+  hardware.bluetooth = {
+    enable = true;
+    powerOnBoot = true;
+  };
+
+  # systemd-rfkill persists rfkill soft-block state to /var/lib/systemd/rfkill
+  # and restores it on every boot. A single stray Bluetooth/airplane toggle
+  # therefore kept the radio dead across reboots. Clear any persisted block at
+  # boot so the controller is always available.
+  systemd.services.rfkill-unblock-bt = {
+    description = "Clear persisted Bluetooth rfkill soft-block at boot";
+    wantedBy = [ "multi-user.target" ];
+    before = [ "bluetooth.service" ];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${pkgs.util-linux}/bin/rfkill unblock bluetooth";
+    };
+  };
 
   # Enable sound with pipewire.
   # sound.enable = true;
@@ -161,6 +188,10 @@
   users.users.makemake = {
     isNormalUser = true;
     description = "makemake";
+    # No lingering: the per-user systemd manager is torn down on logout so a
+    # full logout/login picks up rebuild changes to user units (e.g. PipeWire).
+    # With lingering on, the old manager survives logout holding stale units.
+    linger = false;
     extraGroups = [ "networkmanager" "wheel" "libvirtd" "peripherals" "docker"];
     packages = with pkgs; [
       # should be a flatpak innit
