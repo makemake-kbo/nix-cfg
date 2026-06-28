@@ -54,7 +54,7 @@ in
 
         "org/gnome/desktop/privacy" = {
           old-files-age = gvariant.mkUint32 30;
-          recent-files-max-age = gvariant.mkInt32 14;
+          recent-files-max-age = gvariant.mkInt32 30;
         };
 
         "org/gnome/desktop/sound" = {
@@ -85,14 +85,14 @@ in
         "org/gnome/settings-daemon/plugins/color" = {
           night-light-enabled = true;
           night-light-schedule-automatic = false;
-          night-light-temperature = gvariant.mkUint32 2700;
+          night-light-temperature = gvariant.mkUint32 3700;
         };
 
         # Power
         "org/gnome/settings-daemon/plugins/power" = {
           power-button-action = "interactive";
-          sleep-inactive-ac-timeout = gvariant.mkInt32 7200;
-          sleep-inactive-ac-type = "nothing";
+          sleep-inactive-ac-timeout = gvariant.mkInt32 3600;
+          sleep-inactive-ac-type = "suspend";
         };
 
         # Weather
@@ -122,9 +122,10 @@ in
           ];
           favorite-apps = [
             "org.mozilla.firefox.desktop"
+            "org.gnome.Lollypop.desktop"
             "org.gnome.Nautilus.desktop"
             "org.gnome.Evolution.desktop"
-            "md.obsidian.Obsidian.desktop"
+            "obsidian.desktop"
             "org.gnome.Console.desktop"
             "sublime_text.desktop"
             "sublime_merge.desktop"
@@ -133,7 +134,7 @@ in
 
         # Screenshot keybinding (PrintScreen -> GNOME screenshot UI)
         "org/gnome/shell/keybindings" = {
-          show-screenshot-ui = [ "<Super><Shift>3" ];
+          show-screenshot-ui = [ "<Shift><Super>4" ];
         };
 
         # Extension: AppIndicator

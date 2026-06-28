@@ -18,6 +18,8 @@
       ./nix_ld.nix
       # dconf / GNOME settings
       ./dconf.nix
+      # Sublime Text user settings
+      ./sublime.nix
     ];
 
   # Bootloader.
@@ -60,6 +62,40 @@
   services.xserver.xkb = {
     layout = "us";
     variant = "";
+  };
+
+  # Lofree Flow84 connects over Bluetooth as an Apple device (05ac:2041),
+  # so its top row sends F1-F12 instead of the printed media keys. keyd
+  # remaps the function row to the media actions GNOME expects. Hold the
+  # right Alt key to access the real F1-F12 (the "fnkeys" layer).
+  services.keyd = {
+    enable = true;
+    keyboards.lofree = {
+      ids = [ "05ac:2041" ];
+      settings = {
+        main = {
+          f1 = "brightnessdown";
+          f2 = "brightnessup";
+          f7 = "previoussong";
+          f8 = "playpause";
+          f9 = "nextsong";
+          f10 = "mute";
+          f11 = "volumedown";
+          f12 = "volumeup";
+          rightalt = "layer(fnkeys)";
+        };
+        fnkeys = {
+          f1 = "f1";
+          f2 = "f2";
+          f7 = "f7";
+          f8 = "f8";
+          f9 = "f9";
+          f10 = "f10";
+          f11 = "f11";
+          f12 = "f12";
+        };
+      };
+    };
   };
 
   # Disable cups 
@@ -150,6 +186,22 @@
       virtio-win
       win-spice
       (wineWow64Packages.stable.override { waylandSupport = true; })
+
+      # Migrated off Flatpak -> native nixpkgs. (Firefox, Bitwig, Mumble and
+      # Ungoogled Chromium intentionally stay Flatpak; PollyMC and yuzu stay
+      # Flatpak because they aren't packaged / were removed from nixpkgs.)
+      obsidian
+      telegram-desktop
+      krita
+      nicotine-plus
+      fractal
+      polari
+      gnome-music
+      eyedropper
+      frog
+      cubiomes-viewer
+      kdePackages.kleopatra
+      osu-lazer
     ];
   };
 
@@ -159,7 +211,6 @@
     xterm
   ]) ++ (with pkgs; [
     cheese # webcam tool
-    gnome-music
     epiphany # web browser
     gnome-characters
   ]);
