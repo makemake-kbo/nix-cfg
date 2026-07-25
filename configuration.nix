@@ -31,8 +31,20 @@
   # grub-install land on the GPT Intel Optane scratch disk (no BIOS Boot
   # Partition -> "embedding is not possible" failure). by-id is enumeration-proof.
   boot.loader.grub.enable = true;
-  boot.loader.grub.device = "/dev/disk/by-id/nvme-WD_BLACK_SN770_2TB_232165800652";
-  boot.loader.grub.useOSProber = true;
+  # RAID1 mirror: md0 spans both NVMe drives, LUKS sits on top of md0.
+  # Only the SN7100 gets a bootloader for now — the SN770 keeps its own
+  # untouched GRUB + LUKS root as a rollback until it is wiped and added
+  # to the array. Adding the SN770 here before then destroys the rollback.
+  boot.loader.grub.devices = [
+    "/dev/disk/by-id/nvme-WD_BLACK_SN7100_2TB_25516P801106"
+  ];
+  boot.loader.grub.useOSProber = false; # only while we setup the raid
+
+  boot.swraid.enable = true;
+  boot.swraid.mdadmConf = ''
+    ARRAY /dev/md0 metadata=1.2 UUID=c54679b3:7e790cba:d9811404:12a22794
+    MAILADDR root
+  '';
 
   # Setup keyfile
   boot.initrd.secrets = {
@@ -41,7 +53,8 @@
 
   boot.loader.grub.enableCryptodisk=true;
 
-  boot.initrd.luks.devices."luks-b8654007-4232-4f9b-bb97-5ddc37ecac20".keyFile = "/crypto_keyfile.bin";
+  boot.initrd.luks.devices."luks-ae26ff11-642a-4fd1-ae52-50c9b954baee".keyFile =
+    "/crypto_keyfile.bin";
   networking.hostName = "melchior"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
