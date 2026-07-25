@@ -21,7 +21,7 @@
       # Sublime Text user settings
       ./sublime.nix
       # niri WM (self-contained; delete this line + ./niri to remove)
-      ./niri
+      # ./niri
     ];
 
   # Bootloader.
@@ -113,6 +113,11 @@
     enable = true;
     powerOnBoot = true;
   };
+
+  # The BCM20702A1 dongle (ASUS USB-BT400) ships a buggy ROM and needs the
+  # brcm/BCM20702A1-0b05-17cb.hcd patch at probe time; without it the link
+  # corrupts ACL packets and BLE HID devices (mouse/keyboard) can't stay up.
+  hardware.firmware = [ pkgs.broadcom-bt-firmware ];
 
   # systemd-rfkill persists rfkill soft-block state to /var/lib/systemd/rfkill
   # and restores it on every boot. A single stray Bluetooth/airplane toggle
@@ -257,7 +262,7 @@
     enable = true;
     remotePlay.openFirewall = true; # Open ports in the firewall for Steam Remote Play
     dedicatedServer.openFirewall = true; # Open ports in the firewall for Source Dedicated Server
-  }; 
+  };
 
   # hyprland
   # programs.hyprland.enable = true;
@@ -316,7 +321,10 @@
     runAsRoot = true;
     swtpm.enable = true;
   };
-  boot.kernelParams = [ "amd_iommu=on" "amdgpu.freesync_video=1" ];
+  # The BT dongle (0b05:17cb) wedges on resume from suspend ("invalid context
+  # state" + xhci reset); the RESET_RESUME quirk (:b) power-cycles it cleanly
+  # on every resume instead of trying to restore its corrupted USB state.
+  boot.kernelParams = [ "amd_iommu=on" "amdgpu.freesync_video=1" "usbcore.quirks=0b05:17cb:b" ];
   boot.kernelModules = [ "kvm-amd" "vfio" "vfio_iommu_type1" "vfio_pci" "vfio_virqfd" ];
 
   programs.virt-manager.enable = true;
