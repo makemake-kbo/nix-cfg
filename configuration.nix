@@ -169,6 +169,34 @@
     ];
   };
 
+  # RX 6800 XT power management.
+  #
+  # The stock ppfeaturemask (0xfff7bfff) leaves the OverDrive bit (1<<14) clear,
+  # so pp_od_clk_voltage reads back empty and no undervolt is possible at all.
+  # Enabling it is the prerequisite for any voltage offset.
+  #
+  # The mask is set explicitly rather than taking the module default. Bits are
+  # from enum PP_FEATURE_MASK in drivers/gpu/drm/amd/include/amd_shared.h:
+  #
+  #   0xfff7bfff  kernel default   — clears OVERDRIVE (0x4000), GFX_DCS (0x80000)
+  #   0xfffd7fff  module default   — clears GFXOFF (0x8000), STUTTER_MODE (0x20000)
+  #   0xfff7ffff  used here        — kernel default, plus OVERDRIVE, nothing else
+  #
+  # The module default is wrong for this machine: it disables GFXOFF and stutter
+  # mode, which are exactly the two idle power-saving features that matter here.
+  # GFXOFF is what lets the graphics engine power-gate to 0MHz at idle (23% of
+  # idle residency, measured). Turning it off to chase OverDrive would raise idle
+  # draw to buy an undervolt. Setting only the OverDrive bit keeps both.
+  hardware.amdgpu.overdrive.enable = true;
+  hardware.amdgpu.overdrive.ppfeaturemask = "0xfff7ffff";
+  #
+  # LACT applies the offset at boot via lactd. Left unconfigured on purpose:
+  # populating services.lact.settings makes /etc/lact/config.yaml a read-only
+  # symlink into the store, which locks the GUI out of editing it. Tune in the
+  # GUI first, then paste the resulting /etc/lact/config.yaml into settings here
+  # to make it declarative.
+  services.lact.enable = true;
+
   # Override DP EDID for Samsung Odyssey G85SD — DP-side EDID hides 175Hz +
   # FreeSync modes behind a DisplayID 2.0 block the kernel mis-parses. The
   # binary here is the HDMI-side EDID dumped from macOS, which encodes the
@@ -221,6 +249,7 @@
       spice-protocol
       virtio-win
       win-spice
+      mdadm
       (wineWow64Packages.stable.override { waylandSupport = true; })
 
       # Migrated off Flatpak -> native nixpkgs. (Firefox, Bitwig, Mumble and
@@ -234,10 +263,7 @@
       polari
       gnome-music
       eyedropper
-      frog
-      cubiomes-viewer
       kdePackages.kleopatra
-      osu-lazer
     ];
   };
 
