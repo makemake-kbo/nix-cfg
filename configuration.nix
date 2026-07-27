@@ -4,6 +4,41 @@
 
 { config, pkgs, lib, ... }:
 
+let
+  # mdmonitor PROGRAM handler. mdadm invokes it as: <event> <md-device>
+  # [<component-device>]. Everything lands in the journal under tag "mdadm";
+  # only the events that mean "your redundancy is gone or going" additionally
+  # raise a desktop notification.
+  mdadmNotify = pkgs.writeShellScript "mdadm-notify" ''
+    event="$1"; array="$2"; dev="''${3:-}"
+
+    if [ -n "$dev" ]; then
+      msg="$event on $array ($dev)"
+    else
+      msg="$event on $array"
+    fi
+
+    echo "$msg" | ${pkgs.systemd}/bin/systemd-cat -t mdadm -p warning
+
+    # mdadm --scan derives a by-name path (/dev/md/md0) from the array metadata,
+    # but udev never creates /dev/md/ on this box, so it reports that path as
+    # DeviceDisappeared once per boot. The real array is /dev/md0 — anything
+    # under /dev/md/ here is that phantom. Still journalled above, just not
+    # escalated to the desktop, so genuine popups stay worth reading.
+    case "$array" in
+      /dev/md/*) exit 0 ;;
+    esac
+
+    case "$event" in
+      Fail|FailSpare|DegradedArray|DeviceDisappeared|SparesMissing|TestMessage)
+        ${pkgs.dbus}/bin/dbus-send --system \
+          / net.nuetzlich.SystemNotifications.Notify \
+          "string:RAID problem on $array" \
+          "string:$msg — run 'cat /proc/mdstat'"
+        ;;
+    esac
+  '';
+in
 {
   imports =
     [ # Include the results of the hardware scan.
@@ -25,26 +60,46 @@
     ];
 
   # Bootloader.
-  # Target the boot disk (WD_BLACK SN770, MBR, holds the LUKS root) by stable
-  # by-id path. Kernel nvme enumeration is unstable — it has swapped this disk
+  # Both NVMe drives are md0 members (MBR, legacy BIOS) carrying identical
+  # copies of /boot inside the LUKS root. GRUB goes into both MBRs so either
+  # disk can boot the machine on its own.
+  # by-id paths only: kernel nvme enumeration is unstable — it has swapped these
   # between nvme0n1/nvme1n1, and pointing grub at the bare /dev/nvme0n1 made
   # grub-install land on the GPT Intel Optane scratch disk (no BIOS Boot
   # Partition -> "embedding is not possible" failure). by-id is enumeration-proof.
   boot.loader.grub.enable = true;
-  # RAID1 mirror: md0 spans both NVMe drives, LUKS sits on top of md0.
-  # Only the SN7100 gets a bootloader for now — the SN770 keeps its own
-  # untouched GRUB + LUKS root as a rollback until it is wiped and added
-  # to the array. Adding the SN770 here before then destroys the rollback.
   boot.loader.grub.devices = [
     "/dev/disk/by-id/nvme-WD_BLACK_SN7100_2TB_25516P801106"
+    "/dev/disk/by-id/nvme-WD_BLACK_SN770_2TB_232165800652"
   ];
-  boot.loader.grub.useOSProber = false; # only while we setup the raid
+  # Nothing to probe: NixOS is the only install on this box. Flip to true if a
+  # second OS ever lands, otherwise it just mounts every visible partition on
+  # each rebuild and finds nothing.
+  boot.loader.grub.useOSProber = false;
 
   boot.swraid.enable = true;
   boot.swraid.mdadmConf = ''
     ARRAY /dev/md0 metadata=1.2 UUID=c54679b3:7e790cba:d9811404:12a22794
     MAILADDR root
+    PROGRAM ${mdadmNotify}
   '';
+
+  # mdadm delivers MAILADDR via sendmail, and there is no MTA on this machine,
+  # so mail alone is a silent black hole. PROGRAM is the escape hatch: it fires
+  # for every mdmonitor event, logs to the journal, and pushes the serious ones
+  # to the desktop over the same system-bus channel smartd uses.
+
+  # SMART monitoring for both mirror members. mdmonitor already shouts when the
+  # array drops a disk; smartd is what warns *before* that happens.
+  services.smartd = {
+    enable = true;
+    notifications.wall.enable = true;
+    notifications.systembus-notify.enable = true;
+    devices = [
+      { device = "/dev/disk/by-id/nvme-WD_BLACK_SN7100_2TB_25516P801106"; }
+      { device = "/dev/disk/by-id/nvme-WD_BLACK_SN770_2TB_232165800652"; }
+    ];
+  };
 
   # Setup keyfile
   boot.initrd.secrets = {
@@ -55,6 +110,30 @@
 
   boot.initrd.luks.devices."luks-ae26ff11-642a-4fd1-ae52-50c9b954baee".keyFile =
     "/crypto_keyfile.bin";
+
+  # Without this, dm-crypt swallows discards and fstrim.timer only ever trims
+  # /mnt/QVO — the NVMe mirror never sees a TRIM at all. md RAID1 passes
+  # discards through to both members, so this is the only missing link.
+  # Trade-off: an attacker with a disk image can see which blocks are in use
+  # (roughly how full the disk is and where data sits), though not their
+  # contents. Accepted here: the drives are internal and don't travel.
+  boot.initrd.luks.devices."luks-ae26ff11-642a-4fd1-ae52-50c9b954baee".allowDiscards = true;
+
+  # RAID1 can detect a mismatch between mirror halves but has no way to know
+  # which half is right, so the value of a scrub is catching divergence while
+  # both disks are still healthy. mdadm ships the timer (first Sunday of the
+  # month, 01:00); NixOS links the unit but leaves it disabled.
+  systemd.timers.mdcheck_start.wantedBy = [ "timers.target" ];
+  systemd.timers.mdcheck_continue.wantedBy = [ "timers.target" ];
+
+  # No swap at all meant memory pressure went straight to the OOM killer. zram
+  # is a compressed in-RAM cushion: idle at normal usage, and far cheaper than
+  # losing a process. ~8G of 46G.
+  zramSwap = {
+    enable = true;
+    algorithm = "zstd";
+    memoryPercent = 17;
+  };
   networking.hostName = "melchior"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
@@ -306,8 +385,7 @@
   # hyprland
   # programs.hyprland.enable = true;
 
-  # zram
-  zramSwap.enable = false;
+  # zram is configured up by the storage settings, next to the LUKS/RAID block.
 
   # System profiling
   services.sysprof.enable = true;
@@ -406,17 +484,11 @@
   # Or disable the firewall altogether.
   # networking.firewall.enable = false;
 
-  # fileSystems."/mnt/QVO" = {
-  #   device = "/dev/disk/by-uuid/c2127c5f-c14c-4f53-9500-4205230268fc";
-  #   fsType = "ext4";
-  #   options = [ "defaults" "user" "rw" ];
-  # };
-
-  # fileSystems."/mnt/pciessd" = {
-  #   device = "/dev/disk/by-uuid/e7ac3523-c3d0-4aad-9227-0e3799f4ad18";
-  #   fsType = "ext4";
-  #   options = [ "defaults" "user" "rw" ];
-  # };
+  fileSystems."/mnt/QVO" = {
+    device = "/dev/disk/by-uuid/c2127c5f-c14c-4f53-9500-4205230268fc";
+    fsType = "ext4";
+    options = [ "defaults" "nofail" "x-systemd.device-timeout=5s" ];
+  };
 
   # Garbage collection
   nix.gc = {
