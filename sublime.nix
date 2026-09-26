@@ -22,8 +22,14 @@ let
 
   lspClangd = pkgs.writeText "LSP-clangd.sublime-settings" ''
     {
-    	"binary": "auto",
-    	"enabled": false,
+    	// clangd from PATH (a project devshell), not the downloaded 17, which
+    	// can't read gcc 15's headers.
+    	"binary": "system",
+    	"enabled": true,
+    	"initializationOptions": {
+    		// Let clangd ask nix's gcc wrapper for its include paths.
+    		"clangd.query-driver": "/nix/store/*/bin/*",
+    	},
     }
   '';
 
