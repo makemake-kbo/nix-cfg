@@ -206,10 +206,10 @@ in
     powerOnBoot = true;
   };
 
-  # The BCM20702A1 dongle (ASUS USB-BT400) ships a buggy ROM and needs the
-  # brcm/BCM20702A1-0b05-17cb.hcd patch at probe time; without it the link
-  # corrupts ACL packets and BLE HID devices (mouse/keyboard) can't stay up.
-  hardware.firmware = [ pkgs.broadcom-bt-firmware ];
+  # NOTE: the BCM20702A1 workaround (hardware.firmware = [ pkgs.broadcom-bt-firmware ])
+  # was dropped 2026-09-19. It existed for an ASUS USB-BT400 (0b05:17cb) that is no
+  # longer in this machine; the current dongle is a TP-Link UB500 (37ad:0600,
+  # Realtek RTL8761BU), which loads rtl_bt/rtl8761bu_fw.bin from linux-firmware.
 
   # systemd-rfkill persists rfkill soft-block state to /var/lib/systemd/rfkill
   # and restores it on every boot. A single stray Bluetooth/airplane toggle
@@ -382,6 +382,15 @@ in
     dedicatedServer.openFirewall = true; # Open ports in the firewall for Source Dedicated Server
   };
 
+  # WiVRn: OpenXR runtime that streams to the Quest (replaces SteamVR + ALVR).
+  # It manages the active OpenXR runtime itself, so there's no home-manager link.
+  services.wivrn = {
+    enable = true;
+    openFirewall = true;
+    autoStart = true;
+    steam.importOXRRuntimes = true; # lets Steam/Proton games find WiVRn
+  };
+
   # hyprland
   # programs.hyprland.enable = true;
 
@@ -423,6 +432,7 @@ in
      git
      curl
      htop
+     wl-clipboard # wl-copy / wl-paste; terminal apps (pi, etc.) need these on Wayland
   ];
 
   # Flatpak
