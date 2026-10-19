@@ -348,7 +348,6 @@ in
       # Ungoogled Chromium intentionally stay Flatpak; PollyMC and yuzu stay
       # Flatpak because they aren't packaged / were removed from nixpkgs.)
       obsidian
-      telegram-desktop
       krita
       nicotine-plus
       fractal
