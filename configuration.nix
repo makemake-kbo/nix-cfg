@@ -53,8 +53,6 @@ in
       ./nix_ld.nix
       # dconf / GNOME settings
       ./dconf.nix
-      # Sublime Text user settings
-      ./sublime.nix
       # niri WM (self-contained; delete this line + ./niri to remove)
       # ./niri
     ];
@@ -324,8 +322,6 @@ in
       evolution
       evince
       gnome-tweaks
-      sublime-merge
-      sublime4
       framesh
       vlc
       ffmpeg
@@ -347,7 +343,6 @@ in
       # Migrated off Flatpak -> native nixpkgs. (Firefox, Bitwig, Mumble and
       # Ungoogled Chromium intentionally stay Flatpak; PollyMC and yuzu stay
       # Flatpak because they aren't packaged / were removed from nixpkgs.)
-      obsidian
       krita
       nicotine-plus
       fractal
@@ -397,11 +392,6 @@ in
 
   # System profiling
   services.sysprof.enable = true;
-
-  # This is only for sublime4 i hate it here
-  nixpkgs.config.permittedInsecurePackages = [
-    "openssl-1.1.1w"
-  ];
 
   # Desktop icons n sheeit
   environment.sessionVariables = rec {
